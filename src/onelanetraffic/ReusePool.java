@@ -21,5 +21,9 @@ public class ReusePool {
         return reusePool.dequeue();
     }
 
+    public String toString() {
+        return "\nVehicles in the repair shop:\n" + reusePool.toString();
+    }
+
 }
 

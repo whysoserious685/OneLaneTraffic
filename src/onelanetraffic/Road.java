@@ -11,19 +11,22 @@ import exceptionclasses.*;
  * @author Lehan Zhang
  */
 public class Road {
-    private Vehicle[] road; // Array storing vehicles on the road, null represents empty positions
+    private Vehicle[] Vehicles; // an array that stores vehicle objects
     private int numVehicles; // The number of vehicles on the road
-    private int current; // indicate the current location index on the road
-    private ReusePool reusePool = new ReusePool();
+    private int current; // the array index of the current vehicle to be processed with command
+    private ReusePool reusePool = new ReusePool(); // use a linkedQueue to store the crashed vehicles for later reuse
 
     /**
-     * default constructor to create a road with size 6 and
-     * populate it with random vehicles
+     * initialize an empty road with a given size
+     * set numVehicles, current, and reusePool to 0
+     *
+     * @param size the size of the road array
      */
-    public Road() {
-        road = new Vehicle[6];
+    public Road(int size) {
         numVehicles = 0;
-        populateRoad();
+        Vehicles = new Vehicle[size];
+        current = 0;
+        reusePool = new ReusePool();
     }
 
     /**
@@ -33,32 +36,75 @@ public class Road {
      * @param numVehicles number of vehicles on the road by user input
      */
     public Road(int size, int numVehicles) {
-        road = new Vehicle[size];
+        Vehicles = new Vehicle[size];
         this.numVehicles = numVehicles;
         populateRoad();
         setCurrent();
     }
 
-    public int getCurrent() {
-        return current;
+    public Vehicle[] getVehicles() {
+        return Vehicles;
+    }
+
+    public int getNumVehicles() {
+        return numVehicles;
+    }
+
+    public void setNumVehicles(int numVehicles) {
+        this.numVehicles = numVehicles;
+    }
+
+    /**
+     * need fix populate road does not set numVehicles
+     */
+    public void setCurrent() {
+        // if the road becomes empty, fill the road with vehicles
+        if (numVehicles == 0) {
+            numVehicles = Vehicles.length;
+            populateRoad();
+        }
+        // Try to find a random index for movement(given 10 tries)
+        Random rand = new Random();
+        int randomIndex = -1;
+        int maxTries = 10;
+        for (int i = 0; i < maxTries; i++) {
+            randomIndex = rand.nextInt(Vehicles.length);
+            if (Vehicles[randomIndex] != null) {
+                current = randomIndex;
+                break;
+            } else {
+                randomIndex = -1;
+            }
+        }
+        // use a linear approach if fail to randomly find one
+        if (randomIndex == -1) {
+            for (int i = 0; i < Vehicles.length; i++) {
+                if (Vehicles[i] != null) {
+                    current = i;
+                    break;
+                }
+            }
+        }
+    }
+
+    public ReusePool getReusePool() {
+        return reusePool;
+    }
+
+    public void setReusePool(ReusePool reusePool) {
+        this.reusePool = reusePool;
+    }
+
+    public int getSize() {
+        return Vehicles.length;
     }
 
     /**
      *
-     * @return the 1-based position of the current vehicle
+     * @return the 1-based position of the vehicle on the road
      */
     public int getPosition() {
         return current + 1;
-    }
-
-    private void setCurrent() {
-        // set current to the index of the first vehicle on the road
-        for (int i = 0; i < road.length; i++) {
-            if (road[i] != null) {
-                current = i;
-                break;
-            }
-        }
     }
 
     /**
@@ -69,73 +115,64 @@ public class Road {
      * @param direction the movement direction (-1 backward, 0 stay, +1 forward)
      */
     public void moveVehicle(int direction) {
-        setCurrent();
+        if (direction == 0) {
+            System.out.println(Vehicles[current] + "remain at current location");
+            return;
+        }
         // The first and last vehicle on the road should not move if out of bound.
         boolean atLeftEdge = current == 0 && direction == -1;
-        boolean atRightEdge = current == road.length - 1 && direction == 1;
+        boolean atRightEdge = current == Vehicles.length - 1 && direction == 1;
         if (atLeftEdge || atRightEdge) {
             System.out.println("\nTarget location out of range, invalid move instruction.");
             return;
         }
 
-        int target = current + direction; // the target moving location
+        int target = current + direction; // target index after movement
 
         // move current vehicle to target location
-        if (road[target] == null) {
-            System.out.println(road[current] + " moved to position " + (target + 1));
-            road[target] = road[current];
-            road[current] = null;
-        } else  {
-            try {
-                collision(target);
-            } catch (EmptyQueueException ex) {
-                System.out.println(ex.getMessage());
-            }
+        if (Vehicles[target] == null) {
+            System.out.println(Vehicles[current] + " moved to position " + (target + 1));
+            Vehicles[target] = Vehicles[current];
+            Vehicles[current] = null;
+        } else {
+            collision(target);
         }
-        // update current to the index of the next vehicle on the road
-        do {
-            current++;
-            current = (current + 1) % road.length;
-        } while (road[current] == null);
     }
 
     /**
      * Adds a new vehicle to a random empty position on the road.
      * Used when new vehicles are created after collisions.
      *
-     * @param vehicle the vehicle to add to the road
      */
-    private void addVehicle(Vehicle vehicle) throws EmptyQueueException {
-        Vehicle newVehicle = reusePool.reuseVehicle();
+    private void addVehicle() {
+        Vehicle vehicleToAdd = null;
+        try {
+            vehicleToAdd = reusePool.reuseVehicle();
+        } catch (EmptyQueueException ex) {
+            System.out.println(ex.getMessage());
+        }
 
-//        Random rand = new Random();
-//        int attempts = 0;
-//        int maxAttempts = road.length * 3; // Prevent infinite loops if the array is full
-//
-//        // Try to find an empty spot
-//        while (attempts < maxAttempts) {
-//            int randomIndex = rand.nextInt(road.length);
-//            if (road[randomIndex] == null) {
-//                road[randomIndex] = vehicle;
-//                System.out.println("New vehicle added at position " + randomIndex);
-//                return;
-//            }
-//            attempts++;
-//        }
-//
-//        // No empty spot found
-//        System.out.println("Road is full. Could not add new vehicle.");
+        Random rand = new Random();
+        int indexToAdd = rand.nextInt(Vehicles.length);
+
+        while (Vehicles[indexToAdd] != null) {
+            indexToAdd = rand.nextInt(Vehicles.length);
+        }
+        Vehicles[indexToAdd] = vehicleToAdd;
+        numVehicles++;
+        System.out.println("\nA repaired vehicle " + vehicleToAdd + " added to position " + (indexToAdd + 1));
+        System.out.println(reusePool);
     }
 
     /**
      * Handles collisions between vehicles by determining their types and applying appropriate rules.
      * Calls corresponding methods according to the collision type
      *
-     * @param target the position of the vehicle being moved into
+     * @param target the target moving location
      */
-    private void collision(int target) throws EmptyQueueException {
-        Vehicle currentVehicle = road[current];
-        Vehicle otherVehicle = road[target];
+    private void collision(int target) {
+        Vehicle currentVehicle = Vehicles[current];
+        Vehicle otherVehicle = Vehicles[target];
 
         // Determines the collision type and handles accordingly
         if (currentVehicle.isCar() && otherVehicle.isCar()) {
@@ -156,41 +193,42 @@ public class Road {
      * Handles collisions between two cars based on color and horsepower rules.
      *
      * Rules:
-     * - Different colors: Both cars crash and are removed, new car is added
+     * - Different colors: Both cars crash and are removed, a new car is added
      * - Same color: Car with higher horsepower survives
      *
-     * @param target position of the second car
+     * @param target the target moving location
      */
-    private void carVsCar(int target) throws EmptyQueueException {
+    private void carVsCar(int target) {
         // Cast vehicles to Car for access to car-specific methods
-        Car currentCar = (Car)road[current];
-        Car otherCar = (Car)road[target];
+        Car currentCar = (Car) Vehicles[current];
+        Car otherCar = (Car) Vehicles[target];
 
-        if (currentCar.sameColor(otherCar)) {
-            // Different colors, both crash and are removed
+        if (!currentCar.sameColor(otherCar)) {
             System.out.println("\n" + currentCar + " vs " + otherCar
                     + "\nCars of different colors crashed! Removing both.");
-            reusePool.recycleVehicle(currentCar); // add crashed vehicles to reuse pool
+            // add crashed vehicles to reuse pool
+            reusePool.recycleVehicle(currentCar);
             reusePool.recycleVehicle(otherCar);
-            road[current] = null;
-            road[target] = null;
+            System.out.print(reusePool);
 
-            // Add a replacement car at a random position
-            Car newCar = (Car)reusePool.reuseVehicle();
-            addVehicle(newCar);
+            Vehicles[current] = null;
+            Vehicles[target] = null;
+            numVehicles -= 2;
+            addVehicle();// Add a replacement car at a random position
         } else {
-            // Same color, car with higher horsepower survives
             if (currentCar.getHorsePower() > otherCar.getHorsePower()) {
                 System.out.println("\n" + currentCar + " vs " + otherCar + "\nCar at position " +
-                        (current +1) + " has greater HP, Car at position " + (target + 1) + " is removed.");
+                        getPosition() + " has greater HP, Car at position " + (target + 1) + " is removed.");
                 reusePool.recycleVehicle(otherCar);
-                road[target] = null;
+                Vehicles[target] = null;
             } else {
                 System.out.println("\n" + currentCar + " vs " + otherCar + "\nCar at position " +
-                        (target +1) + "has greater HP, Car at position " + (current + 1) + " is removed.");
+                        (target +1) + " has greater HP, Car at position " + getPosition() + " is removed.");
                 reusePool.recycleVehicle(currentCar);
-                road[current] = null;
+                Vehicles[current] = null;
             }
+            numVehicles--;
+            System.out.print(reusePool);
         }
     }
 
@@ -204,20 +242,23 @@ public class Road {
      * @param target position of the bus
      * @param type true if the car is moving into a bus, false if a bus is moving into a car
      */
-    private void carVsBus(int target, boolean type) throws EmptyQueueException {
+    private void carVsBus(int target, boolean type) {
         if (type) {
             // Car tries to move into Bus's space, the car stops
-            System.out.println("\n" + road[current] + " vs " + road[target] + "\nCar at position "
-                    + (current + 1) + " stops. Cannot move into Bus's space.");
+            System.out.println("\n" + Vehicles[current] + " vs " + Vehicles[target] + "\nCar at position "
+                    + getPosition() + " stops. Cannot move into Bus's space.");
         } else {
             // Bus moves into Car's space, Bus pushes the Car out
-            System.out.println("\n" + road[current] + " vs " + road[target] + "\nBus at position "
-                    + (current +1) + " pushes Car at position " + (target + 1) + " out.");
+            System.out.println("\n" + Vehicles[current] + " vs " + Vehicles[target] + "\nBus at position "
+                    + getPosition() + " pushes Car at position " + (target + 1) + " out.");
 
-            // Move bus to the car's location, car is removed
-            road[target] = road[current];
-            reusePool.recycleVehicle(road[target]);
-            road[current] = null;  // Clear bus's old position
+            reusePool.recycleVehicle(Vehicles[target]);
+            System.out.print(reusePool);
+
+            // Move bus to the car's location, the car is removed
+            Vehicles[target] = Vehicles[current];
+            Vehicles[current] = null;
+            numVehicles--;
         }
     }
 
@@ -230,21 +271,27 @@ public class Road {
      *
      * @param target position of the first bus
      */
-    private void busVsBus(int target) throws EmptyQueueException {
+    private void busVsBus(int target) {
         // Cast vehicles to Bus for access to bus-specific methods
-        Bus currentBus = (Bus) road[current];
-        Bus otherBus = (Bus) road[target];
+        Bus currentBus = (Bus) Vehicles[current];
+        Bus otherBus = (Bus) Vehicles[target];
 
         if (currentBus.getWeight() > otherBus.getWeight()) {
             System.out.println("\n" + currentBus + " vs " + otherBus + "\nBus at position "
-                    + (current +1) + " has more weight, Bus at position " + (target + 1) + " is removed.");
+                    + getPosition() + " has more weight, Bus at position " + (target + 1) + " is removed.");
             reusePool.recycleVehicle(otherBus);
-            road[target] = null;
+            System.out.print(reusePool);
+
+            Vehicles[target] = null;
+            numVehicles--;
         } else if (currentBus.getWeight() < otherBus.getWeight()) {
             System.out.println("\n" + currentBus + " vs " + otherBus + "\nBus at position "
-                    + (target +1) + " has more weight, Bus at position " + (current + 1) + " is removed.");
+                    + (target +1) + " has more weight, Bus at position " + getPosition() + " is removed.");
             reusePool.recycleVehicle(currentBus);
-            road[current] = null;
+            System.out.print(reusePool);
+
+            Vehicles[current] = null;
+            numVehicles--;
         } else {
             // Equal weight → both buses remain
             System.out.println("\n" + currentBus + " vs " + otherBus
@@ -258,18 +305,19 @@ public class Road {
      */
     private void populateRoad() {
         Random rand = new Random();
-        int type = new Random().nextInt(2); // generate 0 or 1 to randomly choose Car (0) or Bus (1)
 
         for (int i = 0; i < numVehicles; i++) {
-            int index = rand.nextInt(road.length); // generate random index to assign a vehicle
+            int index = rand.nextInt(Vehicles.length); // generate random index to assign a vehicle
 
-            while (road[index] != null) {
-                index = new Random().nextInt(road.length);
+            while (Vehicles[index] != null) {
+                index = new Random().nextInt(Vehicles.length);
             }
-            if (type == 0) {
-                road[index] = new Car();
+
+            double type = new Random().nextDouble(1.0); // generate 0 or 1 to randomly choose Car (0) or Bus (1)
+            if (type < 0.65) {
+                Vehicles[index] = new Car();
             } else {
-                road[index] = new Bus();
+                Vehicles[index] = new Bus();
             }
         }
     }
@@ -282,9 +330,10 @@ public class Road {
      */
     public String toString() {
         StringBuilder str = new StringBuilder();
-        for (int i = 0; i < road.length; i++) {
-            if (road[i] != null) {
-                str.append(road[i].toString()).append("\n");
+        for (int i = 0; i < Vehicles.length; i++) {
+            if (Vehicles[i] != null) {
+                str.append("Position ").append(i + 1).append(": ").
+                        append(Vehicles[i].toString()).append("\n");
             } else {
                 str.append("Position ").append(i + 1).append(": [Empty]\n");
             }

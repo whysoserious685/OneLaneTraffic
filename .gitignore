@@ -1,7 +1,16 @@
 ### IntelliJ IDEA ###
+.idea/
+*.iml
 out/
 !**/src/main/**/out/
 !**/src/test/**/out/
+
+### Java build artifacts ###
+*.class
+*.jar
+*.war
+*.ear
+*.log
 
 ### Eclipse ###
 .apt_generated
@@ -25,5 +34,9 @@ bin/
 ### VS Code ###
 .vscode/
 
-### Mac OS ###
+### macOS ###
 .DS_Store
+
+### Optional project-specific ###
+# Uncomment if you don’t want input files like test data committed
+# input.txt

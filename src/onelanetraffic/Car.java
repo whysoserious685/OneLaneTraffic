@@ -26,18 +26,9 @@ public class Car extends Vehicle {
      * @return a randomly selected color string
      */
     public String randomColor() {
-        String[] colors = {"red", "green", "blue", "yellow", "black", "grey", "silver"};
+        String[] colors = {"red", "blue", "White", "black", "silver"};
         Random rand = new Random();
         return colors[rand.nextInt(colors.length)];
-    }
-
-    /**
-     * Gets the color of this car.
-     * 
-     * @return the car's color
-     */
-    public String getColor() {
-        return color;
     }
 
     /**

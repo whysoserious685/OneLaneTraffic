@@ -3,27 +3,34 @@ package onelanetraffic;
 import stacks.LinkedStack;
 
 public class HistoryTracking {
-    private LinkedStack<Road> history;
-    private int count;
+    private LinkedStack<Road> roadHistory; // a linkedStack to store previous road states
 
     public HistoryTracking() {
-        history = new LinkedStack<>();
-        count = 0;
+        roadHistory = new LinkedStack<>();
     }
 
-    public void addHistory(Road roadState) {
-        history.push(roadState);
-    }
-
-    public LinkedStack<Road> getHistory() {
-        return history;
-    }
-
-    public void undo(int times) {
-        for (int i = 0; i < times; i++) {
-            history.pop();
-            count--;
+    /**
+     * create a deep copy of the current road with all its fields and push
+     * the copy into the stack of road history
+     *
+     * @param currentRoad the road needed to be stored in the stack
+     */
+    public void addHistory(Road currentRoad) {
+        Road clone = new Road(currentRoad.getSize());
+        for (int i = 0; i < clone.getSize(); i++) {
+            clone.getVehicles()[i] = currentRoad.getVehicles()[i];
         }
+        clone.setNumVehicles(currentRoad.getNumVehicles());
+        clone.setReusePool(currentRoad.getReusePool());
+
+        roadHistory.push(clone);
     }
 
+    // need fix
+    public Road undo() {
+        return roadHistory.pop();
+    }
 }
+
+
+
