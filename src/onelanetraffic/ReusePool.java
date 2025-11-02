@@ -21,6 +21,31 @@ public class ReusePool {
         return reusePool.dequeue();
     }
 
+    public ReusePool copy() {
+        ReusePool newPool = new ReusePool();
+        LinkedQueue<Vehicle> newQueue = new LinkedQueue<>();
+        LinkedQueue<Vehicle> temp = new LinkedQueue<>();
+
+        try {
+            while (!reusePool.isEmpty()) {
+                Vehicle v = reusePool.dequeue();
+                newQueue.enqueue(v);  // same vehicle (immutable)
+                temp.enqueue(v);      // save to restore original
+            }
+
+            // restore the original pool
+            while (!temp.isEmpty()) {
+                reusePool.enqueue(temp.dequeue());
+            }
+        } catch (EmptyQueueException ex) {
+            System.out.println(ex.getMessage());
+        }
+
+        newPool.reusePool = newQueue;
+        return newPool;
+    }
+
+    @Override
     public String toString() {
         return "\nVehicles in the repair shop:\n" + reusePool.toString();
     }

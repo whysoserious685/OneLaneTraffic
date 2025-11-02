@@ -22,8 +22,10 @@ public class HistoryTracking {
         for (int i = 0; i < clone.getSize(); i++) {
             clone.getVehicles()[i] = currentRoad.getVehicles()[i];
         }
+
         clone.setNumVehicles(currentRoad.getNumVehicles());
-        clone.setReusePool(currentRoad.getReusePool());
+        // deep copy of the reusePool
+        clone.setReusePool(currentRoad.getReusePool().copy());
 
         roadHistory.push(clone);
     }
@@ -31,6 +33,7 @@ public class HistoryTracking {
     // need fix
     public Road undo() {
         if (roadHistory.isEmpty()) {
+            System.out.println("No more steps to undo. History is empty.");
             return null;
         }
         return roadHistory.pop();

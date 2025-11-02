@@ -96,14 +96,12 @@ public class MainApp {
             } else if (action.equals("u")) {
                 System.out.println("Executing command - restoring the road to its state " + step + " steps ago.");
                 for (int i = 0; i < step; i++) {
-                    if (roadHistory.isEmpty()) {
-                        System.out.println("No history to be undo.");
-                        break;
-                    }
-                    aRoad = roadHistory.undo(); // reassign aRoad to its previous state
+                    Road prev = roadHistory.undo();
+                    if (prev == null) break;
+                    aRoad = prev; // reassign aRoad to its previous state
                 }
             } else {
-                System.out.println("Invalid command. Proceeding to the next step.");
+                System.out.println("Invalid command. Proceeding to the next step.\n");
                 scr.nextLine(); // ignores and consumes the invalid step number and move to the next line
                 continue;
             }

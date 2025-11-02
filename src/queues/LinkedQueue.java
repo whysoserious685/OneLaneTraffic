@@ -158,8 +158,8 @@ public class LinkedQueue<E> implements QueueADT<E> {
         String copy = "";
         Node<E> current = front;
 
-        while(current!=null) {
-            copy+=current.getItem()+"\n";
+        while(current != null) {
+            copy += current.getItem()+ "\n";
             current = current.getNext();
         }
         return copy;
