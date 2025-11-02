@@ -1,5 +1,7 @@
 package onelanetraffic;
 
+import exceptionclasses.EmptyQueueException;
+import exceptionclasses.EmptyStackException;
 import stacks.LinkedStack;
 
 public class HistoryTracking {
@@ -28,7 +30,14 @@ public class HistoryTracking {
 
     // need fix
     public Road undo() {
+        if (roadHistory.isEmpty()) {
+            return null;
+        }
         return roadHistory.pop();
+    }
+
+    public boolean isEmpty() {
+        return roadHistory.isEmpty();
     }
 }
 

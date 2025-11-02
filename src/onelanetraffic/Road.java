@@ -160,7 +160,7 @@ public class Road {
         }
         Vehicles[indexToAdd] = vehicleToAdd;
         numVehicles++;
-        System.out.println("\nA repaired vehicle " + vehicleToAdd + " added to position " + (indexToAdd + 1));
+        System.out.println("\nA repaired vehicle, " + vehicleToAdd + ", added to position " + (indexToAdd + 1));
         System.out.println(reusePool);
     }
 

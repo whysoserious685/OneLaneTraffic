@@ -12,8 +12,8 @@ public class Vehicle {
     private final int horsePower; // The horsepower of the vehicle
 
     /**
-     * Constructs a new Vehicle with random horsepower
-     * Horsepower is randomly generated between 100 and 399.
+     * Constructs a new Vehicle with random horsepower which
+     * is randomly generated between 100 and 399.
      */
     public Vehicle() {
         Random rand = new Random();
@@ -45,16 +45,6 @@ public class Vehicle {
      */
     public boolean isBus() {
         return this instanceof Bus;
-    }
-
-    /**
-     * Compares the horsepower of this vehicle with another vehicle.
-     * 
-     * @param otherVehicle the vehicle to compare with
-     * @return true if both vehicles have the same horsepower, false if not
-     */
-    public boolean compareHorsePower(Vehicle otherVehicle) {
-        return this.horsePower == otherVehicle.horsePower;
     }
 
     /**
