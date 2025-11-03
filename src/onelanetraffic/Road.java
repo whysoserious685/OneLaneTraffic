@@ -6,7 +6,7 @@ import exceptionclasses.*;
 /**
  * Represents a one-lane road containing vehicles (cars and buses).
  * Manages vehicle movement, collisions, and road state in the traffic simulation.
- * The road is implemented as an array where each index represents a position.
+ * The road is implemented as an array where each index represents a position on the road.
  *
  * @author Lehan Zhang
  */
@@ -18,9 +18,9 @@ public class Road {
 
     /**
      * initialize an empty road with a given size
-     * set numVehicles, current, and reusePool to 0
+     * set numVehicles, current, and reusePool to intial value
      *
-     * @param size the size of the road array
+     * @param size the size of the vehicles array
      */
     public Road(int size) {
         numVehicles = 0;
@@ -30,10 +30,11 @@ public class Road {
     }
 
     /**
-     * Constructs a new road of with a specific size and populates it with random vehicles.
+     * Constructs a new road of a specific size and populates it with a certain
+     * number of vehicles.
      *
-     * @param size the size of the vehicle array
-     * @param numVehicles number of vehicles on the road by user input
+     * @param size the size of the vehicles array
+     * @param numVehicles number of vehicles on the road
      */
     public Road(int size, int numVehicles) {
         vehicles = new Vehicle[size];
@@ -42,27 +43,40 @@ public class Road {
         setCurrent();
     }
 
+    /**
+     * Retrieves the array of vehicles currently on the road.
+     *
+     * @return an array of Vehicle objects representing the vehicles on the road
+     */
     public Vehicle[] getVehicles() {
         return vehicles;
     }
 
+    /**
+     * Retrieves the number of vehicles currently on the road.
+     *
+     * @return the total number of vehicles present on the road
+     */
     public int getNumVehicles() {
         return numVehicles;
     }
 
+    /**
+     * Updates the number of vehicles currently on the road.
+     *
+     * @param numVehicles the new total number of vehicles to set on the road
+     */
     public void setNumVehicles(int numVehicles) {
         this.numVehicles = numVehicles;
     }
 
     /**
-     * need fix populate road does not set numVehicles
+     * Updates the current vehicle's position on the road.
+     * Attempts to randomly select a non-null vehicle to set as the current vehicle.
+     * If no vehicle can be randomly selected within the specified number of attempts (maxTries),
+     * a linear search is performed to find the first non-null vehicle.
      */
     public void setCurrent() {
-        // if the road becomes empty, fill the road with vehicles
-        if (numVehicles == 0) {
-            numVehicles = vehicles.length;
-            populateRoad();
-        }
         // limited loops try to find a random index for movement
         Random rand = new Random();
         int randomIndex = -1;
@@ -87,32 +101,51 @@ public class Road {
         }
     }
 
+    /**
+     * Retrieves the reuse pool associated with the road.
+     *
+     * @return the ReusePool object associated with the road
+     */
     public ReusePool getReusePool() {
         return reusePool;
     }
 
+    /**
+     * Sets the reuse pool for the road. The reuse pool is used to manage
+     *
+     * @param reusePool the ReusePool object to be associated with this road
+     */
     public void setReusePool(ReusePool reusePool) {
         this.reusePool = reusePool;
     }
 
+    /**
+     * Retrieves the size of the vehicles array on the road.
+     *
+     * @return the size of the vehicles array
+     */
     public int getSize() {
         return vehicles.length;
     }
 
     /**
+     * Retrieves 1-based position of the currently selected vehicle on the road.
      *
-     * @return the 1-based position of the vehicle on the road
+     * @return the 1-based position of the current vehicle on the road
      */
     public int getPosition() {
         return current + 1;
     }
 
     /**
-     * Attempts to move a vehicle from the current position to a
-     * new position on the road. Movement is handled by adding the
-     * direction to the current index.
+     * Moves the current vehicle on the road in the specified direction.
+     * The movement is subject to boundary conditions and interactions with other vehicles
+     * at the target location, such as collisions.
      *
-     * @param direction the movement direction (-1 backward, 0 stay, +1 forward)
+     * @param direction the direction of movement:
+     *                  0 indicates no movement,
+     *                  -1 indicates a move to the left,
+     *                  1 indicates a move to the right
      */
     public void moveVehicle(int direction) {
         if (direction == 0) {
@@ -140,9 +173,10 @@ public class Road {
     }
 
     /**
-     * Adds a new vehicle to a random empty position on the road.
-     * Used when new vehicles are created after collisions.
-     *
+     * Adds a new vehicle to the road by reusing an existing vehicle from the reuse pool.
+     * The method attempts to retrieve a vehicle from the reuse pool. If the pool is empty,
+     * an EmptyQueueException is caught, and an error message is printed. Once a vehicle is retrieved,
+     * it is placed in a random empty position on the road.
      */
     private void addVehicle() {
         Vehicle vehicleToAdd = null;
@@ -165,10 +199,11 @@ public class Road {
     }
 
     /**
-     * Handles collisions between vehicles by determining their types and applying appropriate rules.
-     * Calls corresponding methods according to the collision type
+     * Handles collisions between the current vehicle and a target vehicle.
+     * Based on the types of the vehicles involved (car or bus), it determines
+     * the appropriate collision handling method to invoke and executes it.
      *
-     * @param target the target moving location
+     * @param target the index of the target vehicle in the vehicles array
      */
     private void collision(int target) {
         Vehicle currentVehicle = vehicles[current];
@@ -191,12 +226,11 @@ public class Road {
 
     /**
      * Handles collisions between two cars based on color and horsepower rules.
-     *
      * Rules:
      * - Different colors: Both cars crash and are removed, a new car is added
      * - Same color: Car with higher horsepower survives
      *
-     * @param target the target moving location
+     * @param target the index of the target location
      */
     private void carVsCar(int target) {
         // Cast vehicles to Car for access to car-specific methods
@@ -214,7 +248,7 @@ public class Road {
             vehicles[current] = null;
             vehicles[target] = null;
             numVehicles -= 2;
-            addVehicle();// Add a replacement car at a random position
+            addVehicle();// Add a vehicle from the reuse pool to the road
         } else {
             if (currentCar.getHorsePower() > otherCar.getHorsePower()) {
                 System.out.println("\n" + currentCar + " vs " + otherCar + "\nCar at position " +
@@ -239,12 +273,12 @@ public class Road {
      * - Car tries to move into bus space: Car stops (cannot move)
      * - Bus moves into a car space: Bus pushes the car out (the car is removed)
      *
-     * @param target position of the bus
-     * @param type true if the car is moving into a bus, false if a bus is moving into a car
+     * @param target the index of the target location
+     * @param type true if the car is moving into a bus, false if vise versa
      */
     private void carVsBus(int target, boolean type) {
         if (type) {
-            // Car tries to move into Bus's space, the car stops
+            // Car tries to move into Bus's space
             System.out.println("\n" + vehicles[current] + " vs " + vehicles[target] + "\nCar at position "
                     + getPosition() + " stops. Cannot move into Bus's space.");
         } else {
@@ -269,7 +303,7 @@ public class Road {
      * - Different weights: Heavier bus survives, lighter bus is removed
      * - Equal weights: Both buses remain in place
      *
-     * @param target position of the first bus
+     * @param target the index of the target location
      */
     private void busVsBus(int target) {
         // Cast vehicles to Bus for access to bus-specific methods
@@ -300,8 +334,9 @@ public class Road {
     }
 
     /**
-     * Place a certain number of random vehicles(bus, car) on a random
-     * location on the road.
+     * Populates the road with a specified number of vehicles, assigning each one to a random index
+     * in the vehicles array. Each vehicle is created randomly, with 70% chance of being a car, and 30%
+     * chance of being a bus.
      */
     private void populateRoad() {
         Random rand = new Random();
@@ -314,7 +349,7 @@ public class Road {
             }
 
             double type = new Random().nextDouble(1.0); // generate 0 or 1 to randomly choose Car (0) or Bus (1)
-            if (type < 0.65) {
+            if (type < 0.7) {
                 vehicles[index] = new Car();
             } else {
                 vehicles[index] = new Bus();

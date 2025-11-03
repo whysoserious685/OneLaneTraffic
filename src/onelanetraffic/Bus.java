@@ -4,7 +4,7 @@ import java.util.Random;
 
 /**
  * Represents a Bus in the traffic simulation.
- * Constructs a new Bus with random weight, and horsepower.
+ * Constructs a new Bus with random weight and horsepower.
  * This class inherits Vehicle
  *
  * @author Lehan Zhang

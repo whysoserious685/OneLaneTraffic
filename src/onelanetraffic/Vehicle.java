@@ -3,7 +3,7 @@ package onelanetraffic;
 import java.util.Random;
 
 /**
- * A super class representing vehicles
+ * This is a super class representing vehicles
  * All types of vehicles should have horsepower
  * 
  * @author Lehan Zhang

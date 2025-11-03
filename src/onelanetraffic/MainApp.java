@@ -6,19 +6,15 @@ import java.util.Scanner;
 import javax.swing.JOptionPane;
 
 /**
- * <p>Title: MainApp</p>
  *
- * <p>Description: Main simulation class for one-lane traffic on a road.
- * Reads movement instructions from a file and applies them to vehicles on the road.
- * As the simulation runs, vehicle movements, collision logic, recycling crashed vehicles and
- * retrieve history road state functions are being tested.<p>
- *
- * Edge cases are being handled by exceptions and conditional statements.</>
- *
- * @author Lehan Zhang N00896908
+ * The MainApp class is where the simulation runs for the one-lane traffic project.
+ * This program prompts the user for input of road size and the number
+ * of vehicles on the road. It uses commands from an input file to simulate
+ * vehicle movements and allows undo operations to restore the road to previous states.
+ * It also handles invalid inputs and exceptions along the simulation process.
  */
 public class MainApp {
-    public static void main(String[] args) {
+    public static void main (String[] args) {
         int size = 0; // size of the road
         int numVehicles = 0; // num of vehicles to place on the road
         boolean valid = false; // control variable for the validation loop
@@ -77,24 +73,25 @@ public class MainApp {
         System.out.println("Initial state of the road:\n" + aRoad);
 
         while (scr.hasNext()) {
+            // reads inputs from the file
             action = scr.next();
             step =scr.nextInt();
-            aRoad.setCurrent(); // pick a location to perform movement
-            int targetPosition = aRoad.getPosition() + step;
-
-            // System.out.println(aRoad.getCurrent() + "\n");
+            aRoad.setCurrent(); // set a current vehicle to perform movement
+            int targetPosition = aRoad.getPosition() + step; // 1-based index of the target position
 
             if (action.equals("m")) {
+                // validate movement command
                 if ( !(step == 0 || step == 1 || step == -1) ) {
                     System.out.println("Invalid direction. Proceeding to the next command.");
                     continue;
                 }
                 System.out.println("Executing command - moving vehicle at position " + aRoad.getPosition()
                         + " to position " + targetPosition + ".");
-                roadHistory.addHistory(aRoad); // add a copy of the current road to history
+                roadHistory.addHistory(aRoad); // add a copy of the current road state to history
                 aRoad.moveVehicle(step);
             } else if (action.equals("u")) {
                 System.out.println("Executing command - restoring the road to its state " + step + " steps ago.");
+                // restore the current road to its earlier state, loop ends if no more history
                 for (int i = 0; i < step; i++) {
                     Road prev = roadHistory.undo();
                     if (prev == null) break;
@@ -107,5 +104,8 @@ public class MainApp {
             }
             System.out.println("\nCurrent state of the road:\n" + aRoad);
         }
+
+        System.out.println("Simulation finished.");
+        System.out.println("\nFinal state of the road:\n" + aRoad);
     }
 }

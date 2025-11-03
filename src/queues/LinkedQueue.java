@@ -24,7 +24,7 @@ public class LinkedQueue<E> implements QueueADT<E> {
      * @param newItem a reference to the item to be added to the queue
      */
     public void enqueue (E newItem) {
-        Node<E> temp = new Node<E>(newItem);
+        Node<E> temp = new Node<>(newItem);
 
         if(isEmpty()) {
             front = rear = temp;
@@ -37,7 +37,6 @@ public class LinkedQueue<E> implements QueueADT<E> {
     /**
      * dequeue method - removes the item at the front of the queue
      * @return a reference to the item removed from the front of the queue
-     * @throws EmptyQueueException
      * @throws EmptyQueueException if the queue is empty
      */
     public E dequeue() throws EmptyQueueException {
@@ -158,8 +157,8 @@ public class LinkedQueue<E> implements QueueADT<E> {
         String copy = "";
         Node<E> current = front;
 
-        while(current != null) {
-            copy += current.getItem()+ "\n";
+        while(current!=null) {
+            copy += current.getItem() + "\n";
             current = current.getNext();
         }
         return copy;
